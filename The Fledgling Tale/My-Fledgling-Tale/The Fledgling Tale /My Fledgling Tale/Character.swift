@@ -33,7 +33,7 @@ class Character {
     let maxHp : Int
     let dmg : Int
     let mana : Int
-    var weapon : Weapon = .init(type: .bareHand)
+    var weapon : Weapon = .bareHand
     var finalDmg : Int {
         return self.dmg + weapon.damage
     }

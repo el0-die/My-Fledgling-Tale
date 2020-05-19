@@ -10,22 +10,100 @@ import Foundation
 
 class Game{
     
-    var team1 = Player(name: "Joueur 1")
-    var team2 = Player(name: "Joueur 2")
-    var numberOfRounds = 0
-    var chestAppearance = 0
-    var counterAttack = 0
-    var counterHeal = 0
-    let message = Message()
-    
-    func beginning(){
+    func beginGame(){
         print(message.helloPlayer1)
         team1.createTeam()
         print(message.helloPlayer2)
         team2.createTeam()
     }
-    
-    func wantToAttack()->Bool{
+        
+    func fight() {
+        var attacker = team1
+        var opponent = team2
+        
+        while team1.stayAlive() && team2.stayAlive() {
+            numberOfRounds += 1
+            attacker.removeDeadCharacter()
+            print(message.whichCharacter)
+                let fighterCharacter : Character = selectCharacter(in: attacker)
+                print("""
+                                         ----------
+                                Vous avez jeté votre dévolu sur :
+                                \(fighterCharacter.name) | \(fighterCharacter.faction)
+                                         ----------
+                """)
+                showRandomlyChest(luckyOne: fighterCharacter)
+                if wantToAttack() {
+                    print(message.whichTarget)
+                    let opponentCharacter : Character = selectCharacter(in: opponent)
+                    print("""
+                                            ----------
+                                    Le malheureux élu est donc :
+                                       \(opponentCharacter.name) | \(opponentCharacter.faction)
+                                            ----------
+                    """)
+                    fighterCharacter.attack(target : opponentCharacter)
+                    counterAttack += 1
+                }else{
+                    print(message.whichToHeal)
+                    let blessedOneCharacter : Character = selectCharacter(in: attacker)
+                    print("""
+                                                 ----------
+                                          L'heureux élu est donc :
+                                        \(blessedOneCharacter.name) | \(blessedOneCharacter.faction)
+                                                 ----------
+                    """)
+                    fighterCharacter.heal(blessedOne: blessedOneCharacter)
+                    counterHeal += 1
+                }
+                swap(&attacker , &opponent)
+            }
+        getGameWinner()
+    }
+
+    func restartToMenu() {
+        let menu = Menu()
+        print(message.restart)
+        let entry = readLine()
+            if let playerChoice = entry {
+                switch playerChoice {
+                case "1":
+                    return menu.displayMenu()
+                case "2":
+                    print(message.sayBye)
+                default:
+                    print(message.wrongAnswer1)
+                }
+            }
+    }
+
+    // MARK: - Private
+
+    private var team1 = Player(name: "Joueur 1")
+    private var team2 = Player(name: "Joueur 2")
+    private var numberOfRounds = 0
+    private var chestAppearance = 0
+    private var counterAttack = 0
+    private var counterHeal = 0
+    private let message = Message()
+
+    private func getGameWinner() {
+        let winner: String
+        if team1.team.count > team2.team.count {
+            winner = team1.name
+        } else {
+            winner = team2.name
+        }
+        print(message.congratWinner)
+        print("""
+                                ----------
+                                 \(winner)
+                                ----------
+        """)
+        recapStat()
+    }
+
+    private func wantToAttack()->Bool{
         print(message.choiceAttackOrHeal)
         let entry = readLine()
         if let playerChoice = entry {
@@ -41,7 +119,7 @@ class Game{
         return wantToAttack()
     }
     
-    func whichCharacter(in player: Player)-> Character {
+    private func selectCharacter(in player: Player)-> Character {
         for (index, character) in player.team.enumerated(){
             print("\(index + 1) - \(character.faction) | \(character.name) | Vie: \(character.hp)/\(character.maxHp) | Attaque: \(character.dmg) | Magie: \(character.mana)")
         }
@@ -55,87 +133,27 @@ class Game{
             }
         }
         print(message.wrongAnswer3)
-        return whichCharacter(in: player)
+        return selectCharacter(in: player)
     }
     
-    func chest(luckyOne: Character) {
+    private func showRandomlyChest(luckyOne: Character) {
         let chest = Chest()
-        if chest.randomChest() == true {
+        if chest.isChestAppeared() == true {
             chestAppearance += 1
             print(message.chestAppearance)
-            chest.randomWeapon(character: luckyOne)
+            chest.attributeNewWeapon(to: luckyOne)
             print(message.discoverChestWeapon)
             print("""
                     ------------------------------------------
                     \(luckyOne.name) | \(luckyOne.faction) est maintenant équipé
-                    de \(luckyOne.weapon.name). \(luckyOne.weapon.damage) de dégats
+                    de "\(luckyOne.weapon.name)". Un bonus de \(luckyOne.weapon.damage) de dégats
                         supplémentaires lui sont octroyés.
                     ------------------------------------------
             """)
         }
     }
         
-    func fight() {
-        var attacker = team1
-        var opponent = team2
-        
-        while team1.stayAlive() && team2.stayAlive() {
-            numberOfRounds += 1
-            attacker.removeDeadCharacter()
-            print(message.whichCharacter)
-                let fighterCharacter : Character = whichCharacter(in: attacker)
-                print("""
-                                         ----------
-                                Vous avez jeté votre dévolu sur :
-                                \(fighterCharacter.name) | \(fighterCharacter.faction)
-                                         ----------
-                """)
-                chest(luckyOne: fighterCharacter)
-                if wantToAttack() {
-                    print(message.whichTarget)
-                    let opponentCharacter : Character = whichCharacter(in: opponent)
-                    print("""
-                                            ----------
-                                    Le malheureux élu est donc :
-                                       \(opponentCharacter.name) | \(opponentCharacter.faction)
-                                            ----------
-                    """)
-                    fighterCharacter.attack(target : opponentCharacter)
-                    counterAttack += 1
-                }else{
-                    print(message.whichToHeal)
-                    let blessedOneCharacter : Character = whichCharacter(in: attacker)
-                    print("""
-                                                 ----------
-                                          L'heureux élu est donc :
-                                        \(blessedOneCharacter.name) | \(blessedOneCharacter.faction)
-                                                 ----------
-                    """)
-                    fighterCharacter.heal(blessedOne: blessedOneCharacter)
-                    counterHeal += 1
-                }
-                swap(&attacker , &opponent)
-            }
-        gameWinner()
-        }
-
-        func gameWinner() {
-            let winner: String
-            if team1.team.count > team2.team.count {
-                winner = team1.name
-            } else {
-                winner = team2.name
-            }
-            print(message.congratWinner)
-            print("""
-                                     ----------
-                                      \(winner)
-                                     ----------
-            """)
-            recapStat()
-            }
-        
-    func recapStat() {
+    private func recapStat() {
         print("""
                 ------------------------------------------
                     Nombre de tours réalisés: \(numberOfRounds)
@@ -144,22 +162,7 @@ class Game{
                     Nombre de soins prodigués: \(counterHeal)
                 ------------------------------------------
         """)
-        restart()
+        restartToMenu()
     }
-    
-    func restart() {
-        let menu = Menu()
-        print(message.restart)
-        let entry = readLine()
-            if let playerChoice = entry {
-                switch playerChoice {
-                case "1":
-                    return menu.displayMenu()
-                case "2":
-                    print(message.sayBye)
-                default:
-                    print(message.wrongAnswer1)
-                }
-            }
-    }
+
 }

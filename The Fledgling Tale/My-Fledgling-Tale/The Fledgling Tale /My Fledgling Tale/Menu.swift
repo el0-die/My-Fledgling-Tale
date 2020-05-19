@@ -9,20 +9,32 @@
 import Foundation
 
 class Menu {
-    let message = Message()
-    let game = Game()
     
-    func play() {
-        game.beginning()
+    func displayMenu() {
+        print(message.gameTitle)
+        if hasStartNewGame() {
+            play()
+        }else{
+            credit()
+        }
+    }
+
+    // MARK: - Private
+    
+    private let message = Message()
+    private let game = Game()
+    
+    private func play() {
+        game.beginGame()
         game.fight()
     }
     
-    func credit() {
+    private func credit() {
         print(message.myCredit)
-        game.restart()
+        game.restartToMenu()
     }
     
-    func startNewGame()->Bool{
+    private func hasStartNewGame()->Bool{
         print(message.menuChoice)
         let entry = readLine()
         if let playerChoice = entry {
@@ -35,15 +47,6 @@ class Menu {
                 print(message.wrongAnswer1)
             }
         }
-        return startNewGame()
-    }
-    
-    func displayMenu() {
-        print(message.gameTitle)
-        if startNewGame() {
-            play()
-        }else{
-            credit()
-        }
+        return hasStartNewGame()
     }
 }
